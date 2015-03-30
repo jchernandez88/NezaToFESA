@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset='UTF-8' />
+	<meta name="description" content="Trayecto de Metro Nezahualcóyotl de la Línea B hacia la FES Aragón vía Street View" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>FES Aragón</title>
+</head> 
+<body> 
+	cargando...
+	<div id="pano" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index:-1;"></div>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false" type="text/javascript"></script> 
+<script src="js/vendor/three.min.js"></script>
+<script src="js/vendor/GSVPano.js"></script>
+<script src="js/vendor/Hyperlapse.js"></script>
+<script>
+function webgl_detect(return_context) {
+	if (!!window.WebGLRenderingContext) {
+		var canvas = document.createElement("canvas"),
+			names = ["webgl", "experimental-webgl", "moz-webgl", "webkit-3d"],
+			context = false;
+			for(var i=0;i<4;i++) {
+			try {
+				context = canvas.getContext(names[i]);
+				if (context && typeof context.getParameter == "function") {
+					if (return_context) {
+						return {name:names[i], gl:context};
+					}
+					return true;
+				}
+			} catch(e) {
+				console.log(e);
+				return false;
+			}
+		}
+		return false;
+	}
+	return false;
+}
+function init() {
+	var hyperlapse = new Hyperlapse(document.getElementById('pano'), {
+		lookat: new google.maps.LatLng(19.47706,-99.044171),
+		zoom: 2,
+		millis: 400,
+		use_lookat: true,
+		fov: 80,
+		width: window.innerWidth,
+		height: window.innerHeight,
+		distance_between_points: 50,
+		elevation: 0
+	});
+	hyperlapse.onError = function(e){};
+	hyperlapse.onRouteComplete = function(e) {hyperlapse.load();};
+	hyperlapse.onLoadComplete = function(e) {hyperlapse.play();};
+	// Google Maps API stuff here...
+	var directions_service = new google.maps.DirectionsService();
+	var route = {
+		request:{
+			origin: new google.maps.LatLng(19.472424,-99.054491),
+			destination: new google.maps.LatLng(19.47706,-99.044171),
+			travelMode: google.maps.DirectionsTravelMode.DRIVING
+		}
+	};
+	directions_service.route(route.request, function(response, status) {
+		if (status == google.maps.DirectionsStatus.OK) {
+			hyperlapse.generate( {route:response} );
+		} else {
+			console.log(status);
+		}
+	});
+}
+if(webgl_detect(1)){
+	window.onload = init;
+}else{
+	document.getElementsByTagName("body")[0].innerHTML='Este experimento require WebGL. Su mejor opción es Google Chrome.';
+}
+</script> 
+</body> 
+</html>
